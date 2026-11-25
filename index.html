@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MUB AI">
+  <title>MUB AI PRO v2.0 — Autonomous Multi-Agent Engine</title>
+  <style>
+    :root {
+      --bg: #040406;
+      --glass: rgba(16, 16, 22, 0.85);
+      --border: rgba(255, 255, 255, 0.11);
+      --purple: #7C3AED;
+      --cyan: #00E5FF;
+      --green: #10B981;
+      --amber: #F59E0B;
+      --text: #F4F4F5;
+      --muted: #A1A1AA;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background: radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.25), transparent 45%),
+                  radial-gradient(circle at 90% 90%, rgba(0, 229, 255, 0.18), transparent 45%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+    }
+
+    .shell {
+      width: 100%;
+      max-width: 1120px;
+      background: var(--glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-orb {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      color: #000;
+      font-size: 1.2rem;
+      box-shadow: 0 0 22px rgba(0, 229, 255, 0.45);
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #fff, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .engine-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    @media (min-width: 768px) {
+      .engine-controls { width: auto; }
+    }
+
+    select, button {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    select { flex: 1; min-width: 210px; }
+    select option { background: #101016; }
+
+    .boot-btn {
+      background: linear-gradient(135deg, var(--purple), #4F46E5);
+      border: none;
+      font-weight: 700;
+      box-shadow: 0 4px 18px rgba(124, 58, 237, 0.45);
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 8px;
+    }
+
+    .mode-card {
+      background: rgba(0, 0, 0, 0.42);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .mode-card.active {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.1);
+    }
+
+    .mode-card h3 { font-size: 0.86rem; margin-bottom: 3px; color: #fff; }
+    .mode-card p { font-size: 0.74rem; color: var(--muted); line-height: 1.3; }
+
+    .status {
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      color: var(--cyan);
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .stream {
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      height: 380px;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .bubble {
+      padding: 12px 14px;
+      border-radius: 14px;
+      line-height: 1.55;
+      font-size: 0.9rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .bubble.user {
+      background: rgba(124, 58, 237, 0.28);
+      border: 1px solid rgba(124, 58, 237, 0.45);
+      align-self: flex-end;
+      max-width: 85%;
+    }
+
+    .bubble.mub {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      width: 100%;
+    }
+
+    .bubble-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    .action-mini {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--border);
+      color: #fff;
+    }
+
+    .composer {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    textarea {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: #fff;
+      padding: 11px 12px;
+      resize: none;
+      height: 56px;
+      font-size: 16px; /* Prevents iOS auto-zoom */
+    }
+
+    textarea:focus { outline: none; border-color: var(--cyan); }
+
+    .voice-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      padding: 0 14px;
+      font-size: 1.1rem;
+    }
+
+    .voice-btn.listening {
+      border-color: #EF4444;
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    .run-btn {
+      background: linear-gradient(135deg, var(--cyan), #0284C7);
+      color: #000;
+      font-weight: 800;
+      border: none;
+      padding: 0 20px;
+    }
+
+    .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo-orb">M</div>
+        <h1>MUB AI PRO</h1>
+        <span class="pill" id="deviceBadge">DETECTING...</span>
+      </div>
+
+      <div class="engine-controls">
+        <select id="coreModel">
+          <option value="Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC">PC Ultra: Qwen 2.5 Coder 7B (Max Power)</option>
+          <option value="Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC">iPhone / Fast: Qwen 2.5 Coder 1.5B</option>
+          <option value="Qwen2.5-0.5B-Instruct-q4f16_1-MLC">iPhone Lite: Qwen 2.5 0.5B (Ultra Light)</option>
+          <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">All-Rounder: Llama 3.2 3B</option>
+        </select>
+        <button class="boot-btn" id="bootBtn">Activate MUB AI</button>
+      </div>
+    </div>
+
+    <div class="modes" id="modeGrid">
+      <div class="mode-card active" data-mode="fusion3">
+        <h3>⚡ 3-Stage Ultra Fusion</h3>
+        <p>1. Architect → 2. Coder → 3. Optimizer.</p>
+      </div>
+      <div class="mode-card" data-mode="code">
+        <h3>💻 Instant Pro Code</h3>
+        <p>Clean HTML/CSS/JS, Liquid & Python.</p>
+      </div>
+      <div class="mode-card" data-mode="video">
+        <h3>🎬 Video Director Pro</h3>
+        <p>4K prompts for LTX, Wan 2.2 & CapCut.</p>
+      </div>
+      <div class="mode-card" data-mode="voice">
+        <h3>🎙️ Live Voice Mode</h3>
+        <p>Talk & hear MUB AI speak back.</p>
+      </div>
+    </div>
+
+    <div class="status">
+      <span id="statusText">Click "Activate MUB AI" to boot local GPU engine.</span>
+      <div style="display:flex; gap:12px; align-items:center;">
+        <label style="cursor:pointer;"><input type="checkbox" id="speakToggle"> Voice</label>
+        <button class="action-mini" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="stream" id="stream">
+      <div class="bubble mub">
+        <div class="bubble-header"><span class="tag">MUB AI v2.0 READY</span></div>
+        <div class="content">Auto-optimized for your device. Tap "Activate MUB AI" above. On iPhone, use Safari → Share → "Add to Home Screen" for full-screen app mode.</div>
+      </div>
+    </div>
+
+    <div class="composer">
+      <button class="voice-btn" id="micBtn" title="Speak">🎤</button>
+      <textarea id="input" placeholder="Ask MUB AI to build anything..."></textarea>
+      <button class="run-btn" id="runBtn" disabled>RUN</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+
+    const coreModel = document.getElementById("coreModel");
+    const bootBtn = document.getElementById("bootBtn");
+    const statusText = document.getElementById("statusText");
+    const deviceBadge = document.getElementById("deviceBadge");
+    const stream = document.getElementById("stream");
+    const input = document.getElementById("input");
+    const runBtn = document.getElementById("runBtn");
+    const micBtn = document.getElementById("micBtn");
+    const speakToggle = document.getElementById("speakToggle");
+    const clearBtn = document.getElementById("clearBtn");
+    const modeCards = document.querySelectorAll(".mode-card");
+
+    let engine = null;
+    let activeMode = "fusion3";
+
+    // Auto-detect iPhone/iPad vs PC
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (isIOS) {
+      deviceBadge.textContent = "IPHONE MODE • WEB-GPU";
+      coreModel.value = "Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC";
+    } else {
+      deviceBadge.textContent = "DESKTOP ULTRA • GPU";
+      coreModel.value = "Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC";
+    }
+
+    modeCards.forEach(card => {
+      card.addEventListener("click", () => {
+        modeCards.forEach(c => c.classList.remove("active"));
+        card.classList.add("active");
+        activeMode = card.dataset.mode;
+        if (activeMode === "voice") speakToggle.checked = true;
+      });
+    });
+
+    clearBtn.addEventListener("click", () => {
+      stream.innerHTML = "";
+    });
+
+    function appendBubble(tag, text, isUser = false) {
+      const div = document.createElement("div");
+      div.className = `bubble ${isUser ? "user" : "mub"}`;
+      if (isUser) {
+        div.textContent = text;
+      } else {
+        div.innerHTML = `
+          <div class="bubble-header">
+            <span class="tag">${tag}</span>
+            <button class="action-mini copy-btn">Copy</button>
+          </div>
+          <div class="content"></div>
+        `;
+        const contentEl = div.querySelector(".content");
+        contentEl.textContent = text;
+        div.querySelector(".copy-btn").addEventListener("click", (e) => {
+          navigator.clipboard.writeText(contentEl.textContent);
+          e.target.textContent = "Copied!";
+          setTimeout(() => e.target.textContent = "Copy", 1500);
+        });
+      }
+      stream.appendChild(div);
+      stream.scrollTop = stream.scrollHeight;
+      return div;
+    }
+
+    function speakText(text) {
+      if (!speakToggle.checked || !("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/```[\s\S]*?```/g, "Code is ready on screen.");
+      const utter = new SpeechSynthesisUtterance(clean.slice(0, 350));
+      utter.rate = 1.05;
+      window.speechSynthesis.speak(utter);
+    }
+
+    bootBtn.addEventListener("click", async () => {
+      const modelId = coreModel.value;
+      bootBtn.disabled = true;
+      statusText.textContent = `Booting ${modelId}...`;
+
+      try {
+        engine = await webllm.CreateMLCEngine(modelId, {
+          initProgressCallback: (p) => {
+            statusText.textContent = `Loading: ${p.text}`;
+          }
+        });
+        statusText.textContent = `ONLINE (${modelId}) — 100% Free Local GPU`;
+        runBtn.disabled = false;
+      } catch (e) {
+        statusText.textContent = `Error: ${e.message}. On iPhone, use Safari (iOS 18+) & select 0.5B or 1.5B.`;
+        bootBtn.disabled = false;
+      }
+    });
+
+    async function streamStage(systemPrompt, userPrompt, tagLabel) {
+      const bubble = appendBubble(tagLabel, "Thinking...");
+      const contentEl = bubble.querySelector(".content");
+      let full = "";
+
+      const chunks = await engine.chat.completions.create({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        stream: true
+      });
+
+      for await (const chunk of chunks) {
+        full += chunk.choices[0]?.delta?.content || "";
+        contentEl.textContent = full;
+        stream.scrollTop = stream.scrollHeight;
+      }
+      return full;
+    }
+
+    async function executeMUB() {
+      const prompt = input.value.trim();
+      if (!prompt || !engine) return;
+
+      appendBubble("YOU", prompt, true);
+      input.value = "";
+      runBtn.disabled = true;
+
+      try {
+        if (activeMode === "fusion3") {
+          const plan = await streamStage(
+            "You are MUB AI Architect. Output a concise 4-bullet technical plan for the user's request.",
+            prompt,
+            "STAGE 1/3 • ARCHITECT PLAN"
+          );
+          const draft = await streamStage(
+            "You are MUB AI Senior Developer. Write complete, working code based on the plan.",
+            `Request: ${prompt}\nPlan:\n${plan}`,
+            "STAGE 2/3 • MASTER CODER"
+          );
+          const finalOut = await streamStage(
+            "You are MUB AI Optimizer. Review the code below, fix any bugs, enhance UI polish, and output only the final perfected result.",
+            `Original Request: ${prompt}\nDraft Code:\n${draft}`,
+            "STAGE 3/3 • FINAL OPTIMIZER"
+          );
+          speakText(finalOut);
+        } else if (activeMode === "video") {
+          const vidOut = await streamStage(
+            "You are MUB AI Video Director. Provide: 1) Photorealistic 4K 60fps AI video prompt (camera angle, lighting, motion), 2) Negative prompt, 3) CapCut / editing pacing tips.",
+            prompt,
+            "MUB AI • VIDEO DIRECTOR"
+          );
+          speakText(vidOut);
+        } else {
+          const reply = await streamStage(
+            "You are MUB AI, an ultra-fast, expert coding and general intelligence assistant.",
+            prompt,
+            `MUB AI • ${activeMode.toUpperCase()}`
+          );
+          speakText(reply);
+        }
+      } catch (err) {
+        appendBubble("ERROR", err.message);
+      }
+
+      runBtn.disabled = false;
+    }
+
+    runBtn.addEventListener("click", executeMUB);
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        executeMUB();
+      }
+    });
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRec) {
+      const rec = new SpeechRec();
+      rec.lang = "en-US";
+      micBtn.addEventListener("click", () => {
+        micBtn.classList.add("listening");
+        rec.start();
+      });
+      rec.onresult = (e) => {
+        input.value = e.results[0][0].transcript;
+        micBtn.classList.remove("listening");
+        executeMUB();
+      };
+      rec.onerror = () => micBtn.classList.remove("listening");
+      rec.onend = () => micBtn.classList.remove("listening");
+    } else {
+      micBtn.style.display = "none";
+    }
+  </script>
+</body>
+</html>
